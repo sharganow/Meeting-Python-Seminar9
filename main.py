@@ -478,47 +478,72 @@ async def one(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         match_winner = search_for_a_winner(gameBoard)
         match match_winner:
             case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
                         ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
-
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
             case _:
                 if match_winner == userSign[players[player]]:
                     keyboard = [
@@ -573,47 +598,72 @@ async def two(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         match_winner = search_for_a_winner(gameBoard)
         match match_winner:
             case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
                         ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
-
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
             case _:
                 if match_winner == userSign[players[player]]:
                     keyboard = [
@@ -668,49 +718,62 @@ async def three(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         match_winner = search_for_a_winner(gameBoard)
         match match_winner:
             case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
-
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
-            case _:
-                if match_winner == userSign[players[player]]:
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
                     keyboard = [
                         [
                             InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
@@ -718,92 +781,9 @@ async def three(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                         ]
                     ]
                     reply_markup = InlineKeyboardMarkup(keyboard)
-                    await query.edit_message_text(text=f"В игре победил {players[player]}", reply_markup=reply_markup)
-                    return WIN_USER
-
-    else:
-        keyboard = [
-            [
-                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-            ],
-            [
-                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-            ],
-            [
-                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
-            ]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                                      reply_markup=reply_markup)
-    return PLAY_GAME
-
-
-async def four(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global player
-    global players
-    global userSign
-    global gameBoard
-    global viewkeyboard
-    """Show new choice of buttons"""
-    freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
-    fill_correct_view_keyboard()
-    query = update.callback_query
-    await query.answer()
-    if FOUR in freeFields:
-        player = 0
-        enter_sign(gameBoard, FOUR, userSign[players[player]])
-        fill_correct_view_keyboard()
-        match_winner = search_for_a_winner(gameBoard)
-        match match_winner:
-            case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
-
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
             case _:
                 if match_winner == userSign[players[player]]:
                     keyboard = [
@@ -858,47 +838,192 @@ async def five(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         match_winner = search_for_a_winner(gameBoard)
         match match_winner:
             case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
                         ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
+            case _:
+                if match_winner == userSign[players[player]]:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                        ]
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре победил {players[player]}", reply_markup=reply_markup)
+                    return WIN_USER
 
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+    else:
+        keyboard = [
+            [
+                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+            ],
+            [
+                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+            ],
+            [
+                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                      reply_markup=reply_markup)
+    return PLAY_GAME
+
+
+async def four(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    global player
+    global players
+    global userSign
+    global gameBoard
+    global viewkeyboard
+    """Show new choice of buttons"""
+    freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+    fill_correct_view_keyboard()
+    query = update.callback_query
+    await query.answer()
+    if FOUR in freeFields:
+        player = 0
+        enter_sign(gameBoard, FOUR, userSign[players[player]])
+        fill_correct_view_keyboard()
+        match_winner = search_for_a_winner(gameBoard)
+        match match_winner:
+            case 'No':
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
                         ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
             case _:
                 if match_winner == userSign[players[player]]:
                     keyboard = [
@@ -953,47 +1078,72 @@ async def six(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         match_winner = search_for_a_winner(gameBoard)
         match match_winner:
             case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
                         ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
-
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
             case _:
                 if match_winner == userSign[players[player]]:
                     keyboard = [
@@ -1048,47 +1198,72 @@ async def seven(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         match_winner = search_for_a_winner(gameBoard)
         match match_winner:
             case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
                         ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
-
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
             case _:
                 if match_winner == userSign[players[player]]:
                     keyboard = [
@@ -1143,47 +1318,72 @@ async def eight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         match_winner = search_for_a_winner(gameBoard)
         match match_winner:
             case 'No':
-                player = 1
-                make_a_bot_move(gameBoard, player)
-                fill_correct_view_keyboard()
-                match_winner = search_for_a_winner(gameBoard)
-                match match_winner:
-                    case 'No':
-                        player = 0
-                        keyboard = [
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-                            ],
-                            [
-                                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                if len(freeFields):
+                    player = 1
+                    make_a_bot_move(gameBoard, player)
+                    fill_correct_view_keyboard()
+                    match_winner = search_for_a_winner(gameBoard)
+                    match match_winner:
+                        case 'No':
+                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            if len(freeFields):
+                                player = 0
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(
+                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    reply_markup=reply_markup)
+                                return PLAY_GAME
+                            else:
+                                keyboard = [
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    ]
+                                ]
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+                                await query.edit_message_text(text=f"В игре никто не победил",
+                                                              reply_markup=reply_markup)
+                                return DRAW
+                        case _:
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                ]
                             ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                                                          reply_markup=reply_markup)
+                            return WIN_BOT
+                else:
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
                         ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(
-                            text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                            reply_markup=reply_markup)
-                        return PLAY_GAME
-
-                    case _:
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
-                            ]
-                        ]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await query.edit_message_text(text=f"В игре победил {players[player]}",
-                                                      reply_markup=reply_markup)
-                        return WIN_BOT
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"В игре никто не победил",
+                                                  reply_markup=reply_markup)
+                    return DRAW
             case _:
                 if match_winner == userSign[players[player]]:
                     keyboard = [
@@ -1221,6 +1421,10 @@ async def eight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    global gameBoard
+    global viewkeyboard
+    gameBoard = [[(string * 3 + column) for column in range(3)] for string in range(3)]
+    viewkeyboard = [[' ' for column in range(3)] for string in range(3)]
     """Prompt same text & keyboard as `start` does but not as new message"""
     # Get CallbackQuery from Update
     query = update.callback_query
@@ -1229,19 +1433,22 @@ async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("1", callback_data=str(ONE)),
-            InlineKeyboardButton("2", callback_data=str(TWO)),
+            InlineKeyboardButton(f"Вы - {players[0]}", callback_data=str(ONIL)),
+            InlineKeyboardButton("Бот Ерёма", callback_data=str(ONE)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    # Instead of sending a new message, edit the message that
-    # originated the CallbackQuery. This gives the feeling of an
-    # interactive menu.
-    await query.edit_message_text(text="Start handler, Choose a route", reply_markup=reply_markup)
-    return START_ROUTES
+    # Send message with text and appended InlineKeyboard
+    await query.edit_message_text("Игра начинается заново. Выберите - кто сделает первый ход?", reply_markup=reply_markup)
+    # Tell ConversationHandler that we're in state `FIRST` now
+    return QUATION_QUEUE
 
 
 async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    global gameBoard
+    global viewkeyboard
+    gameBoard = [[(string * 3 + column) for column in range(3)] for string in range(3)]
+    viewkeyboard = [[' ' for column in range(3)] for string in range(3)]
     """Returns `ConversationHandler.END`, which tells the
     ConversationHandler that the conversation is over.
     """
@@ -1289,8 +1496,16 @@ def main() -> None:
                 CallbackQueryHandler(eight, pattern="^" + str(EIGHT) + "$"),
             ],
             WIN_USER: [
-                CallbackQueryHandler(start_over, pattern="^" + str(ONE) + "$"),
-                CallbackQueryHandler(end, pattern="^" + str(TWO) + "$"),
+                CallbackQueryHandler(start_over, pattern="^" + str(ONIL) + "$"),
+                CallbackQueryHandler(end, pattern="^" + str(ONE) + "$"),
+            ],
+            WIN_BOT: [
+                CallbackQueryHandler(start_over, pattern="^" + str(ONIL) + "$"),
+                CallbackQueryHandler(end, pattern="^" + str(ONE) + "$"),
+            ],
+            DRAW: [
+                CallbackQueryHandler(start_over, pattern="^" + str(ONIL) + "$"),
+                CallbackQueryHandler(end, pattern="^" + str(ONE) + "$"),
             ],
         },
         fallbacks=[CommandHandler("start", start)],
