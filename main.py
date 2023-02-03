@@ -39,7 +39,7 @@ from telegram.ext import (
     ConversationHandler,
 )
 from tictactoe import fill_correct_view_keyboard, search_for_a_winner, enter_sign, make_a_bot_move
-from token import TOKEN
+from ceaderbot import TOKEN
 
 # Enable logging
 logging.basicConfig(
@@ -48,7 +48,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Stages
-QUATION_QUEUE, QUATION_SIGHN_MOVE, PLAY_GAME, WIN_USER, WIN_BOT, DRAW = range(6)
+QUATION_QUEUE, QUATION_SIGHN_MOVE, PLAY_GAME, GAME_OVER = range(4)
 # Callback data
 ONIL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT = range(9)
 
@@ -62,7 +62,11 @@ def cleanbattlefields(user: str) -> None:
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.message.from_user.name
+    guester = update.message.from_user
+    user = guester.name
+    freedom = dict()
+    if user in list(guests.keys()):
+        freedom = guests.pop(user)
     guests[user] = dict()
     guests[user]['players'] = list()
     guests[user]['players'].append(user)
@@ -73,7 +77,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Send message on `/start`."""
     # Get user that sent /start and log his name
 
-    logger.info("User %s started the conversation.", update.message.first_name)
+    logger.info("User %s started the conversation.", guester.first_name)
     # Build InlineKeyboard where each button has a displayed text
     # and a string as callback_data
     # The keyboard is a list of button rows, where each row is in turn
@@ -242,7 +246,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                 await query.edit_message_text(text=f"В игре никто не победил",
                                                               reply_markup=reply_markup)
                                 cleanbattlefields(user)
-                                return DRAW
+                                return GAME_OVER
                         case _:
                             keyboard = [
                                 [
@@ -255,7 +259,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                                                f"{guests[user]['players'][guests[user]['player']]}",
                                                           reply_markup=reply_markup)
                             cleanbattlefields(user)
-                            return WIN_BOT
+                            return GAME_OVER
                 else:
                     keyboard = [
                         [
@@ -267,7 +271,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     await query.edit_message_text(text=f"В игре никто не победил",
                                                   reply_markup=reply_markup)
                     cleanbattlefields(user)
-                    return DRAW
+                    return GAME_OVER
             case _:
                 if match_winner == guests[user]['userSign'][guests[user]['players'][guests[user]['player']]]:
                     keyboard = [
@@ -281,7 +285,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                                        f"{guests[user]['players'][guests[user]['player']]}",
                                                   reply_markup=reply_markup)
                     cleanbattlefields(user)
-                    return WIN_USER
+                    return GAME_OVER
 
     else:
         keyboard = [
@@ -320,7 +324,7 @@ async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     keyboard = [
         [
             InlineKeyboardButton(f"Вы - {guests[user]['players'][0]}", callback_data=str(ONIL)),
-            InlineKeyboardButton("Бот Ерёма", callback_data=str(ONE)),
+            InlineKeyboardButton(f"Соперник - {guests[user]['players'][1]}", callback_data=str(ONE)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -341,7 +345,7 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text=f"See you next time! {freedom['players'][0]}")
+    await query.edit_message_text(text=f"До встречи! {freedom['players'][0]}")
     return ConversationHandler.END
 
 
@@ -378,15 +382,7 @@ def main() -> None:
                 CallbackQueryHandler(neil, pattern="^" + str(SEVEN) + "$"),
                 CallbackQueryHandler(neil, pattern="^" + str(EIGHT) + "$"),
             ],
-            WIN_USER: [
-                CallbackQueryHandler(start_over, pattern="^" + str(ONIL) + "$"),
-                CallbackQueryHandler(end, pattern="^" + str(ONE) + "$"),
-            ],
-            WIN_BOT: [
-                CallbackQueryHandler(start_over, pattern="^" + str(ONIL) + "$"),
-                CallbackQueryHandler(end, pattern="^" + str(ONE) + "$"),
-            ],
-            DRAW: [
+            GAME_OVER: [
                 CallbackQueryHandler(start_over, pattern="^" + str(ONIL) + "$"),
                 CallbackQueryHandler(end, pattern="^" + str(ONE) + "$"),
             ],
