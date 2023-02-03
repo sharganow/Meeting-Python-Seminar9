@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument, wrong-import-position
 # This program is dedicated to the public domain under the CC0 license.
+# pip install python-telegram-bot[all]
 
 """Simple inline keyboard bot with multiple CallbackQueryHandlers.
 
@@ -37,6 +38,8 @@ from telegram.ext import (
     ContextTypes,
     ConversationHandler,
 )
+from tictactoe import fill_correct_view_keyboard, search_for_a_winner, enter_sign, make_a_bot_move
+from token import TOKEN
 
 # Enable logging
 logging.basicConfig(
@@ -49,143 +52,37 @@ QUATION_QUEUE, QUATION_SIGHN_MOVE, PLAY_GAME, WIN_USER, WIN_BOT, DRAW = range(6)
 # Callback data
 ONIL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT = range(9)
 
-gameBoard = []
-viewkeyboard = []
-maxScore = 10
-players = []
-player = int
-whoMakeChoice = dict()
-userSign = dict()
+guests = dict()
 
 
-def fill_correct_view_keyboard() -> None:
-    global gameBoard
-    global viewkeyboard
-    for i, d in enumerate(gameBoard):
-        for j, k in enumerate(d):
-            if k in range(9):
-                viewkeyboard[i][j] = ' '
-            else:
-                viewkeyboard[i][j] = k
-
-
-def search_for_a_winner(board: list) -> str:
-    for i in range(3):
-        string = board[i][0]
-        column = board[0][i]
-        for j in range(3):
-            if string != board[i][j]:
-                string = 'No'
-            if column != board[j][i]:
-                column = 'No'
-        if string != 'No':
-            return string
-        if column != 'No':
-            return column
-    center = board[1][1]
-    for i in range(3):
-        if center != board[2 - i][i]:
-            center = 'No'
-    if center != 'No':
-        return center
-    center = board[1][1]
-    for i in range(3):
-        if center != board[i][i]:
-            center = 'No'
-    return center
-
-
-def enter_sign(board: list, entr: int, sign: str):
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == entr:
-                board[i][j] = sign
-                break
-        else:
-            continue
-        break
-
-
-def get_progress_score(board: list, depth: int, own_player: int, move_player: int) -> list:
-    weightList = list()
-    match_winner = search_for_a_winner(board)
-    match match_winner:
-        case 'No':
-            virtualBoard = [[(board[string][column]) for column in range(3)] for string in range(3)]
-            freeFields = [k for i, d in enumerate(board) for j, k in enumerate(d) if k in range(9)]
-            if len(freeFields) == 0:
-                weightList.append(0)
-                weightList.append(0)
-                return weightList
-            else:
-                next_move = 0 if move_player else 1
-                weightValues = list()
-                for i in freeFields:
-                    enter_sign(virtualBoard, i, userSign[players[next_move]])
-                    weightValues.append(get_progress_score(virtualBoard, depth + 1, own_player, next_move))
-                    virtualBoard = [[(board[string][column]) for column in range(3)] for string in range(3)]
-                maxWeight = weightValues[0][0]
-                collectAllbranches = 0
-                for i, d in enumerate(weightValues):
-                    if abs(maxWeight) < abs(weightValues[i][0]):
-                        maxWeight = weightValues[i][0]
-                    collectAllbranches += weightValues[i][0] + weightValues[i][1]
-                weightList.append(maxWeight)
-                weightList.append(collectAllbranches)
-                return weightList
-        case _:
-            if match_winner == userSign[players[move_player]]:
-                if move_player == own_player:
-                    weightList.append(maxScore - depth)
-                else:
-                    weightList.append(depth - maxScore)
-            else:
-                print('Произошел сбой маркеровки оппонента при выполнении виртуального хода')
-                weightList.append(0)
-            weightList.append(0)
-            return weightList
-
-
-def make_a_bot_move(board: list, move_player: int) -> None:
-    freeFields = [k for i, d in enumerate(board) for j, k in enumerate(d) if k in range(9)]
-    if len(freeFields) != 0:
-        virtualBoard = [[(board[string][column]) for column in range(3)] for string in range(3)]
-        weightValues = list()
-        for i in freeFields:
-            enter_sign(virtualBoard, i, userSign[players[move_player]])
-            weightValues.append(get_progress_score(virtualBoard, 0, move_player, move_player))
-            virtualBoard = [[(board[string][column]) for column in range(3)] for string in range(3)]
-        maxWeight = weightValues[0][0]
-        indexMaxWeight = 0
-        for i, d in enumerate(weightValues):
-            if maxWeight < weightValues[i][0]:
-                maxWeight = weightValues[i][0]
-                indexMaxWeight = i
-            elif maxWeight == weightValues[i][0]:
-                if weightValues[i][1] > weightValues[indexMaxWeight][1]:
-                    indexMaxWeight = i
-        enter_sign(board, freeFields[indexMaxWeight], userSign[players[move_player]])
-
-
-#     ----------------------------------
+def cleanbattlefields(user: str) -> None:
+    if user in list(guests.keys()):
+        guests[user]['gameBoard'] = [[(string * 3 + column) for column in range(3)] for string in range(3)]
+        guests[user]['viewkeyboard'] = [[' ' for column in range(3)] for string in range(3)]
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global players
+    user = update.message.from_user.name
+    guests[user] = dict()
+    guests[user]['players'] = list()
+    guests[user]['players'].append(user)
+    guests[user]['players'].append("Бот Ерёма")
+    guests[user]['gameBoard'] = [[(string * 3 + column) for column in range(3)] for string in range(3)]
+    guests[user]['viewkeyboard'] = [[' ' for column in range(3)] for string in range(3)]
+    guests[user]['userSign'] = dict()
     """Send message on `/start`."""
     # Get user that sent /start and log his name
-    user = update.message.from_user
-    logger.info("User %s started the conversation.", user.first_name)
+
+    logger.info("User %s started the conversation.", update.message.first_name)
     # Build InlineKeyboard where each button has a displayed text
     # and a string as callback_data
     # The keyboard is a list of button rows, where each row is in turn
     # a list (hence `[[...]]`).
-    players.append(user.name)
-    players.append("Бот Ерёма")
+
     keyboard = [
         [
-            InlineKeyboardButton(f"Вы - {players[0]}", callback_data=str(ONIL)),
-            InlineKeyboardButton("Бот Ерёма", callback_data=str(ONE)),
+            InlineKeyboardButton(f"Вы - {guests[user]['players'][0]}", callback_data=str(ONIL)),
+            InlineKeyboardButton(f"Соперник - {guests[user]['players'][1]}", callback_data=str(ONE)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -195,9 +92,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return QUATION_QUEUE
 
 
-async def you_first(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global player
-    player = 0
+async def you_bot_first(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.callback_query.from_user.name
+    guests[user]['player'] = int(update.callback_query.data)
     query = update.callback_query
     await query.answer()
     keyboard = [
@@ -211,187 +108,127 @@ async def you_first(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return QUATION_SIGHN_MOVE
 
 
-async def bot_first(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global player
-    player = 1
+async def x_o_sighn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.callback_query.from_user.name
+    sighn = int(update.callback_query.data)
+    match sighn:
+        case '0':
+            guests[user]['userSign'][guests[user]['players'][0]] = 'X'
+            guests[user]['userSign'][guests[user]['players'][1]] = 'O'
+        case _:
+            guests[user]['userSign'][guests[user]['players'][1]] = 'X'
+            guests[user]['userSign'][guests[user]['players'][0]] = 'O'
+    # print(f'{update.callback_query.data}')
+    # print(f'{update.callback_query.from_user.name}')
+
     query = update.callback_query
     await query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("X", callback_data=str(ONIL)),
-            InlineKeyboardButton("O", callback_data=str(ONE)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(text="Выберите знак отметки вашего хода: ", reply_markup=reply_markup)
-    return QUATION_SIGHN_MOVE
-
-
-async def x_sighn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global player
-    global players
-    global userSign
-    global gameBoard
-    global viewkeyboard
-    userSign[players[0]] = 'X'
-    userSign[players[1]] = 'O'
-    query = update.callback_query
-    await query.answer()
-    if player:
-        # await query.edit_message_text(text=f"Сейчас ходит бот Ерёма: ",
-        #                           reply_markup=reply_markup)
-
-        make_a_bot_move(gameBoard, player)
-        fill_correct_view_keyboard()
-        player = 0
+    if guests[user]['player']:
+        make_a_bot_move(guests[user]['gameBoard'],
+                        guests[user]['player'],
+                        guests[user]['userSign'],
+                        guests[user]['players'])
+        vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
+        guests[user]['player'] = 0
         keyboard = [
             [
-                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
             ],
             [
-                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
             ],
             [
-                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
             ]
         ]
     else:
+        vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
         keyboard = [
             [
-                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
             ],
             [
-                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
             ],
             [
-                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
             ]
         ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
-                                  reply_markup=reply_markup)
-    return PLAY_GAME
-
-
-async def o_sighn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global player
-    global players
-    global userSign
-    global gameBoard
-    global viewkeyboard
-    userSign[players[1]] = 'X'
-    userSign[players[0]] = 'O'
-    query = update.callback_query
-    await query.answer()
-    if player:
-        make_a_bot_move(gameBoard, player)
-        fill_correct_view_keyboard()
-        player = 0
-        keyboard = [
-            [
-                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-            ],
-            [
-                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-            ],
-            [
-                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
-            ]
-        ]
-    else:
-        keyboard = [
-            [
-                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
-            ],
-            [
-                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
-            ],
-            [
-                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
-            ]
-        ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+    await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, "
+                                       f"{guests[user]['players'][guests[user]['player']]}: ",
                                   reply_markup=reply_markup)
     return PLAY_GAME
 
 
 async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global player
-    global players
-    global userSign
-    global gameBoard
-    global viewkeyboard
+    user = update.callback_query.from_user.name
     key = int(update.callback_query.data)
     print(f'{update.callback_query.data}')
     print(f'{update.callback_query.from_user.name}')
     """Show new choice of buttons"""
-    freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
-    fill_correct_view_keyboard()
+    freeFields = [k for i, d in enumerate(guests[user]['gameBoard']) for j, k in enumerate(d) if k in range(9)]
+    vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
     query = update.callback_query
     await query.answer()
     if key in freeFields:
-        player = 0
-        enter_sign(gameBoard, key, userSign[players[player]])
-        fill_correct_view_keyboard()
-        match_winner = search_for_a_winner(gameBoard)
+        guests[user]['player'] = 0
+        enter_sign(guests[user]['gameBoard'],
+                   key,
+                   guests[user]['userSign'][guests[user]['players'][guests[user]['player']]])
+        vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
+        match_winner = search_for_a_winner(guests[user]['gameBoard'])
         match match_winner:
             case 'No':
-                freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                freeFields = [k for i, d in enumerate(guests[user]['gameBoard']) for j, k in enumerate(d) if
+                              k in range(9)]
                 if len(freeFields):
-                    player = 1
-                    make_a_bot_move(gameBoard, player)
-                    fill_correct_view_keyboard()
-                    match_winner = search_for_a_winner(gameBoard)
+                    guests[user]['player'] = 1
+                    make_a_bot_move(guests[user]['gameBoard'],
+                                    guests[user]['player'],
+                                    guests[user]['userSign'],
+                                    guests[user]['players'])
+                    vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
+                    match_winner = search_for_a_winner(guests[user]['gameBoard'])
                     match match_winner:
                         case 'No':
-                            freeFields = [k for i, d in enumerate(gameBoard) for j, k in enumerate(d) if k in range(9)]
+                            freeFields = [k for i, d in enumerate(guests[user]['gameBoard'])
+                                          for j, k in enumerate(d) if k in range(9)]
                             if len(freeFields):
-                                player = 0
+                                guests[user]['player'] = 0
                                 keyboard = [
                                     [
-                                        InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                                        InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                                        InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                                        InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
                                     ],
                                     [
-                                        InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                                        InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                                        InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                                        InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
                                     ],
                                     [
-                                        InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                                        InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                                        InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                                        InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
                                     ]
                                 ]
                                 reply_markup = InlineKeyboardMarkup(keyboard)
                                 await query.edit_message_text(
-                                    text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+                                    text=f"Ваша очередь хода, выберите свободное поле, "
+                                         f"{guests[user]['players'][guests[user]['player']]}: ",
                                     reply_markup=reply_markup)
                                 return PLAY_GAME
                             else:
@@ -404,6 +241,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                 reply_markup = InlineKeyboardMarkup(keyboard)
                                 await query.edit_message_text(text=f"В игре никто не победил",
                                                               reply_markup=reply_markup)
+                                cleanbattlefields(user)
                                 return DRAW
                         case _:
                             keyboard = [
@@ -413,8 +251,10 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                 ]
                             ]
                             reply_markup = InlineKeyboardMarkup(keyboard)
-                            await query.edit_message_text(text=f"В игре победил {players[player]}",
+                            await query.edit_message_text(text=f"В игре победил "
+                                                               f"{guests[user]['players'][guests[user]['player']]}",
                                                           reply_markup=reply_markup)
+                            cleanbattlefields(user)
                             return WIN_BOT
                 else:
                     keyboard = [
@@ -426,9 +266,10 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     reply_markup = InlineKeyboardMarkup(keyboard)
                     await query.edit_message_text(text=f"В игре никто не победил",
                                                   reply_markup=reply_markup)
+                    cleanbattlefields(user)
                     return DRAW
             case _:
-                if match_winner == userSign[players[player]]:
+                if match_winner == guests[user]['userSign'][guests[user]['players'][guests[user]['player']]]:
                     keyboard = [
                         [
                             InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
@@ -436,38 +277,40 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                         ]
                     ]
                     reply_markup = InlineKeyboardMarkup(keyboard)
-                    await query.edit_message_text(text=f"В игре победил {players[player]}", reply_markup=reply_markup)
+                    await query.edit_message_text(text=f"В игре победил "
+                                                       f"{guests[user]['players'][guests[user]['player']]}",
+                                                  reply_markup=reply_markup)
+                    cleanbattlefields(user)
                     return WIN_USER
 
     else:
         keyboard = [
             [
-                InlineKeyboardButton(f'{viewkeyboard[0][0]}', callback_data=str(ONIL)),
-                InlineKeyboardButton(f'{viewkeyboard[0][1]}', callback_data=str(ONE)),
-                InlineKeyboardButton(f'{viewkeyboard[0][2]}', callback_data=str(TWO)),
+                InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
             ],
             [
-                InlineKeyboardButton(f'{viewkeyboard[1][0]}', callback_data=str(THREE)),
-                InlineKeyboardButton(f'{viewkeyboard[1][1]}', callback_data=str(FOUR)),
-                InlineKeyboardButton(f'{viewkeyboard[1][2]}', callback_data=str(FIVE)),
+                InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
             ],
             [
-                InlineKeyboardButton(f'{viewkeyboard[2][0]}', callback_data=str(SIX)),
-                InlineKeyboardButton(f'{viewkeyboard[2][1]}', callback_data=str(SEVEN)),
-                InlineKeyboardButton(f'{viewkeyboard[2][2]}', callback_data=str(EIGHT)),
+                InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, {players[0]}: ",
+        await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, "
+                                           f"{guests[user]['players'][guests[user]['player']]}: ",
                                       reply_markup=reply_markup)
     return PLAY_GAME
 
 
 async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global gameBoard
-    global viewkeyboard
-    gameBoard = [[(string * 3 + column) for column in range(3)] for string in range(3)]
-    viewkeyboard = [[' ' for column in range(3)] for string in range(3)]
+    user = update.callback_query.from_user.name
+    cleanbattlefields(user)
     """Prompt same text & keyboard as `start` does but not as new message"""
     # Get CallbackQuery from Update
     query = update.callback_query
@@ -476,7 +319,7 @@ async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await query.answer()
     keyboard = [
         [
-            InlineKeyboardButton(f"Вы - {players[0]}", callback_data=str(ONIL)),
+            InlineKeyboardButton(f"Вы - {guests[user]['players'][0]}", callback_data=str(ONIL)),
             InlineKeyboardButton("Бот Ерёма", callback_data=str(ONE)),
         ]
     ]
@@ -489,27 +332,23 @@ async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global gameBoard
-    global viewkeyboard
-    gameBoard = [[(string * 3 + column) for column in range(3)] for string in range(3)]
-    viewkeyboard = [[' ' for column in range(3)] for string in range(3)]
+    user = update.callback_query.from_user.name
+    freedom = dict()
+    if user in list(guests.keys()):
+        freedom = guests.pop(user)
     """Returns `ConversationHandler.END`, which tells the
     ConversationHandler that the conversation is over.
     """
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text="See you next time!")
+    await query.edit_message_text(text=f"See you next time! {freedom['players'][0]}")
     return ConversationHandler.END
 
 
 def main() -> None:
-    global gameBoard
-    global viewkeyboard
-    gameBoard = [[(string * 3 + column) for column in range(3)] for string in range(3)]
-    viewkeyboard = [[' ' for column in range(3)] for string in range(3)]
     """Run the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("5957565943:AAEOJWjTQZc2TWUVq6unssLWcHjgueaub1Y").build()
+    application = Application.builder().token(TOKEN).build()
 
     # Setup conversation handler with the states FIRST and SECOND
     # Use the pattern parameter to pass CallbackQueries with specific
@@ -521,12 +360,12 @@ def main() -> None:
         entry_points=[CommandHandler("start", start)],
         states={
             QUATION_QUEUE: [
-                CallbackQueryHandler(you_first, pattern="^" + str(ONIL) + "$"),
-                CallbackQueryHandler(bot_first, pattern="^" + str(ONE) + "$"),
+                CallbackQueryHandler(you_bot_first, pattern="^" + str(ONIL) + "$"),
+                CallbackQueryHandler(you_bot_first, pattern="^" + str(ONE) + "$"),
             ],
             QUATION_SIGHN_MOVE: [
-                CallbackQueryHandler(x_sighn, pattern="^" + str(ONIL) + "$"),
-                CallbackQueryHandler(o_sighn, pattern="^" + str(ONE) + "$"),
+                CallbackQueryHandler(x_o_sighn, pattern="^" + str(ONIL) + "$"),
+                CallbackQueryHandler(x_o_sighn, pattern="^" + str(ONE) + "$"),
             ],
             PLAY_GAME: [
                 CallbackQueryHandler(neil, pattern="^" + str(ONIL) + "$"),
