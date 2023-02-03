@@ -116,7 +116,7 @@ async def x_o_sighn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.callback_query.from_user.name
     sighn = int(update.callback_query.data)
     match sighn:
-        case '0':
+        case 0:
             guests[user]['userSign'][guests[user]['players'][0]] = 'X'
             guests[user]['userSign'][guests[user]['players'][1]] = 'O'
         case _:
