@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # Stages
 QUATION_QUEUE, QUATION_SIGHN_MOVE, PLAY_GAME, GAME_OVER = range(4)
 # Callback data
-ONIL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT = range(9)
+ONIL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN = range(11)
 
 guests = dict()
 
@@ -238,8 +238,23 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                             else:
                                 keyboard = [
                                     [
-                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                        InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                                        InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                                        InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                                        InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                                        InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                                        InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                                        InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
+                                    ],
+                                    [
+                                        InlineKeyboardButton("Начать новую игру?", callback_data=str(NINE)),
+                                        InlineKeyboardButton("Отпустить бота", callback_data=str(TEN)),
                                     ]
                                 ]
                                 reply_markup = InlineKeyboardMarkup(keyboard)
@@ -250,8 +265,23 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                         case _:
                             keyboard = [
                                 [
-                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                                    InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                                    InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                                    InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                                    InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
+                                ],
+                                [
+                                    InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                                    InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                                    InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
+                                ],
+                                [
+                                    InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                                    InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                                    InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
+                                ],
+                                [
+                                    InlineKeyboardButton("Начать новую игру?", callback_data=str(NINE)),
+                                    InlineKeyboardButton("Отпустить бота", callback_data=str(TEN)),
                                 ]
                             ]
                             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -263,8 +293,23 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 else:
                     keyboard = [
                         [
-                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                            InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                            InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                            InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
+                        ],
+                        [
+                            InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                            InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                            InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
+                        ],
+                        [
+                            InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                            InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                            InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
+                        ],
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(NINE)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(TEN)),
                         ]
                     ]
                     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -276,8 +321,23 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 if match_winner == guests[user]['userSign'][guests[user]['players'][guests[user]['player']]]:
                     keyboard = [
                         [
-                            InlineKeyboardButton("Начать новую игру?", callback_data=str(ONIL)),
-                            InlineKeyboardButton("Отпустить бота", callback_data=str(ONE)),
+                            InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+                            InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+                            InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
+                        ],
+                        [
+                            InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+                            InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+                            InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
+                        ],
+                        [
+                            InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+                            InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+                            InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
+                        ],
+                        [
+                            InlineKeyboardButton("Начать новую игру?", callback_data=str(NINE)),
+                            InlineKeyboardButton("Отпустить бота", callback_data=str(TEN)),
                         ]
                     ]
                     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -349,6 +409,44 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
+async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.callback_query.from_user.name
+    key = int(update.callback_query.data)
+    vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
+    enter_sign(guests[user]['gameBoard'],
+               key,
+               search_for_a_winner(guests[user]['gameBoard']).lower())
+    vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
+    keyboard = [
+        [
+            InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
+            InlineKeyboardButton(f'{vkb[0][1]}', callback_data=str(ONE)),
+            InlineKeyboardButton(f'{vkb[0][2]}', callback_data=str(TWO)),
+        ],
+        [
+            InlineKeyboardButton(f'{vkb[1][0]}', callback_data=str(THREE)),
+            InlineKeyboardButton(f'{vkb[1][1]}', callback_data=str(FOUR)),
+            InlineKeyboardButton(f'{vkb[1][2]}', callback_data=str(FIVE)),
+        ],
+        [
+            InlineKeyboardButton(f'{vkb[2][0]}', callback_data=str(SIX)),
+            InlineKeyboardButton(f'{vkb[2][1]}', callback_data=str(SEVEN)),
+            InlineKeyboardButton(f'{vkb[2][2]}', callback_data=str(EIGHT)),
+        ],
+        [
+            InlineKeyboardButton("Начать новую игру?", callback_data=str(NINE)),
+            InlineKeyboardButton("Отпустить бота", callback_data=str(TEN)),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query = update.callback_query
+    await query.edit_message_text(text=f"Последним в игре ходил "
+                                       f"{guests[user]['players'][guests[user]['player']]}",
+                                  reply_markup=reply_markup)
+    cleanbattlefields(user)
+    return GAME_OVER
+
+
 def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
@@ -383,8 +481,17 @@ def main() -> None:
                 CallbackQueryHandler(neil, pattern="^" + str(EIGHT) + "$"),
             ],
             GAME_OVER: [
-                CallbackQueryHandler(start_over, pattern="^" + str(ONIL) + "$"),
-                CallbackQueryHandler(end, pattern="^" + str(ONE) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(ONIL) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(ONE) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(TWO) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(THREE) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(FOUR) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(FIVE) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(SIX) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(SEVEN) + "$"),
+                CallbackQueryHandler(joke, pattern="^" + str(EIGHT) + "$"),
+                CallbackQueryHandler(start_over, pattern="^" + str(NINE) + "$"),
+                CallbackQueryHandler(end, pattern="^" + str(TEN) + "$"),
             ],
         },
         fallbacks=[CommandHandler("start", start)],
