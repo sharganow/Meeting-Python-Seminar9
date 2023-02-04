@@ -38,7 +38,7 @@ from telegram.ext import (
     ContextTypes,
     ConversationHandler,
 )
-from tictactoe import fill_correct_view_keyboard, search_for_a_winner, enter_sign, make_a_bot_move
+from tictactoe import fill_correct_view_keyboard, search_for_a_winner, enter_sign, make_a_bot_move, bold_winner
 from ceaderbot import TOKEN
 
 # Enable logging
@@ -263,6 +263,8 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                 cleanbattlefields(user)
                                 return GAME_OVER
                         case _:
+                            vkb = fill_correct_view_keyboard(bold_winner(guests[user]['gameBoard']),
+                                                             guests[user]['viewkeyboard'])
                             keyboard = [
                                 [
                                     InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),
@@ -319,6 +321,8 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     return GAME_OVER
             case _:
                 if match_winner == guests[user]['userSign'][guests[user]['players'][guests[user]['player']]]:
+                    vkb = fill_correct_view_keyboard(bold_winner(guests[user]['gameBoard']),
+                                                     guests[user]['viewkeyboard'])
                     keyboard = [
                         [
                             InlineKeyboardButton(f'{vkb[0][0]}', callback_data=str(ONIL)),

@@ -4,7 +4,6 @@
 import Randomizer as rnd
 import time
 
-
 maxScore = 10
 
 
@@ -44,6 +43,52 @@ def search_for_a_winner(board: list) -> str:
     return center
 
 
+def bold_winner(board: list) -> list:
+    board = lower_battle_field(board)
+    for i in range(3):
+        string = board[i][0]
+        column = board[0][i]
+        for j in range(3):
+            if string != board[i][j]:
+                string = 'No'
+            if column != board[j][i]:
+                column = 'No'
+        if string != 'No':
+            for j in range(3):
+                board[i][j] = board[i][j].upper()
+            return board
+        if column != 'No':
+            for j in range(3):
+                board[j][i] = board[j][i].upper()
+            return board
+    center = board[1][1]
+    for i in range(3):
+        if center != board[2 - i][i]:
+            center = 'No'
+            continue
+    if center != 'No':
+        for i in range(3):
+            board[2 - i][i] = board[2 - i][i].upper()
+        return board
+    center = board[1][1]
+    for i in range(3):
+        if center != board[i][i]:
+            center = 'No'
+            continue
+    if center != 'No':
+        for i in range(3):
+            board[i][i] = board[i][i].upper()
+    return board
+
+
+def lower_battle_field(board: list) -> list:
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] not in range(9):
+                board[i][j] = str(board[i][j]).lower()
+    return board
+
+
 def enter_sign(board: list, entr: int, sign: str) -> None:
     for i in range(3):
         for j in range(3):
@@ -55,7 +100,8 @@ def enter_sign(board: list, entr: int, sign: str) -> None:
         break
 
 
-def get_progress_score(board: list, depth: int, own_player: int, move_player: int, usersign: dict, players: list) -> list:
+def get_progress_score(board: list, depth: int, own_player: int, move_player: int, usersign: dict,
+                       players: list) -> list:
     weightList = list()
     match_winner = search_for_a_winner(board)
     match match_winner:
@@ -71,7 +117,8 @@ def get_progress_score(board: list, depth: int, own_player: int, move_player: in
                 weightValues = list()
                 for i in freeFields:
                     enter_sign(virtualBoard, i, usersign[players[next_move]])
-                    weightValues.append(get_progress_score(virtualBoard, depth + 1, own_player, next_move, usersign, players))
+                    weightValues.append(
+                        get_progress_score(virtualBoard, depth + 1, own_player, next_move, usersign, players))
                     virtualBoard = [[(board[string][column]) for column in range(3)] for string in range(3)]
                 maxWeight = weightValues[0][0]
                 collectAllbranches = 0
