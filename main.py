@@ -37,8 +37,11 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
     ConversationHandler,
+    MessageHandler,
+    filters
 )
 from tictactoe import fill_correct_view_keyboard, search_for_a_winner, enter_sign, make_a_bot_move, bold_winner
+from confection import max_candy, is_int_number, get_int_value, make_choce_bot
 from ceaderbot import TOKEN
 
 # Enable logging
@@ -48,9 +51,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Stages
-QUATION_QUEUE, QUATION_SIGHN_MOVE, PLAY_GAME, GAME_OVER = range(4)
+SELECT_GAME, QUATION_QUEUE, QUATION_SIGHN_MOVE, PLAY_CONFECTION, PLAY_TICTACTOE, TICTACTOE_OVER = range(6)
 # Callback data
-ONIL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN = range(11)
+ONIL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, CONFECTION, TICTACTOE = range(13)
+# Состояния игры в конфеты
+confection_states = [
+                        'Задайте начальное количество конфет на столе',
+                        'Возьмите со стола условное количество конфет'
+]
 
 guests = dict()
 
@@ -71,6 +79,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     guests[user]['players'] = list()
     guests[user]['players'].append(user)
     guests[user]['players'].append("Бот Ерёма")
+    guests[user]['SelectedGame'] = 'NotSelected'
+
     guests[user]['gameBoard'] = [[(string * 3 + column) for column in range(3)] for string in range(3)]
     guests[user]['viewkeyboard'] = [[' ' for column in range(3)] for string in range(3)]
     guests[user]['userSign'] = dict()
@@ -82,7 +92,31 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # and a string as callback_data
     # The keyboard is a list of button rows, where each row is in turn
     # a list (hence `[[...]]`).
+    print(logger)
 
+    keyboard = [
+        [
+            InlineKeyboardButton(f"Конфеты", callback_data=str(CONFECTION)),
+            InlineKeyboardButton(f"Крестики-нолики", callback_data=str(TICTACTOE)),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    # Send message with text and appended InlineKeyboard
+    await update.message.reply_text("Выберите игру в которую хотите сыграть?", reply_markup=reply_markup)
+    # Tell ConversationHandler that we're in state `FIRST` now
+    return SELECT_GAME
+
+
+async def select_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.callback_query.from_user.name
+    guests[user]['SelectedGame'] = int(update.callback_query.data)
+    match guests[user]['SelectedGame']:
+        case 11:
+            guests[user]['SelectedGame'] = 'confection'
+        case 12:
+            guests[user]['SelectedGame'] = 'tic-tac-toe'
+    query = update.callback_query
+    await query.answer()
     keyboard = [
         [
             InlineKeyboardButton(f"Вы - {guests[user]['players'][0]}", callback_data=str(ONIL)),
@@ -91,8 +125,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
-    await update.message.reply_text("Выберите - кто сделает первый ход?", reply_markup=reply_markup)
-    # Tell ConversationHandler that we're in state `FIRST` now
+    await query.edit_message_text("Выберите - кто сделает первый ход?", reply_markup=reply_markup)
     return QUATION_QUEUE
 
 
@@ -101,15 +134,28 @@ async def you_bot_first(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     guests[user]['player'] = int(update.callback_query.data)
     query = update.callback_query
     await query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("X", callback_data=str(ONIL)),
-            InlineKeyboardButton("O", callback_data=str(ONE)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(text="Выберите знак отметки вашего хода: ", reply_markup=reply_markup)
-    return QUATION_SIGHN_MOVE
+    match guests[user]['SelectedGame']:
+        case 'confection':
+            guests[user]['confection_states'] = 'Задайте начальное количество конфет на столе'
+            guests[user]['action_field'] = "Подсказка"
+            keyboard = [
+                [
+                    InlineKeyboardButton(f"{guests[user]['action_field']}", callback_data=str(CONFECTION)),
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text(text=f"{guests[user]['confection_states']}: ", reply_markup=reply_markup)
+            return PLAY_CONFECTION
+        case 'tic-tac-toe':
+            keyboard = [
+                [
+                    InlineKeyboardButton("X", callback_data=str(ONIL)),
+                    InlineKeyboardButton("O", callback_data=str(ONE)),
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text(text="Выберите знак отметки вашего хода: ", reply_markup=reply_markup)
+            return QUATION_SIGHN_MOVE
 
 
 async def x_o_sighn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -174,10 +220,10 @@ async def x_o_sighn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, "
                                        f"{guests[user]['players'][guests[user]['player']]}: ",
                                   reply_markup=reply_markup)
-    return PLAY_GAME
+    return PLAY_TICTACTOE
 
 
-async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def tictactoe_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.callback_query.from_user.name
     key = int(update.callback_query.data)
     print(f'{update.callback_query.data}')
@@ -234,7 +280,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                     text=f"Ваша очередь хода, выберите свободное поле, "
                                          f"{guests[user]['players'][guests[user]['player']]}: ",
                                     reply_markup=reply_markup)
-                                return PLAY_GAME
+                                return PLAY_TICTACTOE
                             else:
                                 keyboard = [
                                     [
@@ -261,7 +307,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                 await query.edit_message_text(text=f"В игре никто не победил",
                                                               reply_markup=reply_markup)
                                 cleanbattlefields(user)
-                                return GAME_OVER
+                                return TICTACTOE_OVER
                         case _:
                             vkb = fill_correct_view_keyboard(bold_winner(guests[user]['gameBoard']),
                                                              guests[user]['viewkeyboard'])
@@ -291,7 +337,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                                                f"{guests[user]['players'][guests[user]['player']]}",
                                                           reply_markup=reply_markup)
                             cleanbattlefields(user)
-                            return GAME_OVER
+                            return TICTACTOE_OVER
                 else:
                     keyboard = [
                         [
@@ -318,7 +364,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     await query.edit_message_text(text=f"В игре никто не победил",
                                                   reply_markup=reply_markup)
                     cleanbattlefields(user)
-                    return GAME_OVER
+                    return TICTACTOE_OVER
             case _:
                 if match_winner == guests[user]['userSign'][guests[user]['players'][guests[user]['player']]]:
                     vkb = fill_correct_view_keyboard(bold_winner(guests[user]['gameBoard']),
@@ -349,7 +395,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                                        f"{guests[user]['players'][guests[user]['player']]}",
                                                   reply_markup=reply_markup)
                     cleanbattlefields(user)
-                    return GAME_OVER
+                    return TICTACTOE_OVER
 
     else:
         keyboard = [
@@ -373,7 +419,7 @@ async def neil(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await query.edit_message_text(text=f"Ваша очередь хода, выберите свободное поле, "
                                            f"{guests[user]['players'][guests[user]['player']]}: ",
                                       reply_markup=reply_markup)
-    return PLAY_GAME
+    return PLAY_TICTACTOE
 
 
 async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -416,6 +462,8 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.callback_query.from_user.name
     key = int(update.callback_query.data)
+    query = update.callback_query
+    await query.answer()
     vkb = fill_correct_view_keyboard(guests[user]['gameBoard'], guests[user]['viewkeyboard'])
     enter_sign(guests[user]['gameBoard'],
                key,
@@ -443,12 +491,92 @@ async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    query = update.callback_query
     await query.edit_message_text(text=f"Последним в игре ходил "
                                        f"{guests[user]['players'][guests[user]['player']]}",
                                   reply_markup=reply_markup)
     cleanbattlefields(user)
-    return GAME_OVER
+    return TICTACTOE_OVER
+
+
+async def confection_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.callback_query.from_user.name
+    query = update.callback_query
+    await query.answer()
+    match guests[user]['confection_states']:
+        case 'Задайте начальное количество конфет на столе':
+            match guests[user]['action_field']:
+                case 'Подсказка':
+                    guests[user]['action_field'] = 'Введите через текстовое поле целое\n значение количества конфет'
+                    keyboard = [
+                        [
+                            InlineKeyboardButton(f"{guests[user]['action_field']}", callback_data=str(CONFECTION)),
+                        ]
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await query.edit_message_text(text=f"{guests[user]['confection_states']}: ",
+                                                  reply_markup=reply_markup)
+                    return PLAY_CONFECTION
+                case _:
+                    if is_int_number(guests[user]['action_field']):
+                        if guests[user]['action_field'] > max_candy:
+                            guests[user]['confection_on_table'] = guests[user]['action_field']
+                            guests[user]['confection_states'] = 'Возьмите со стола условное количество конфет'
+                            if guests[user]['player']:
+                                bot_took = make_choce_bot(guests[user]['confection_on_table'])
+                                name_bot = guests[user]['players'][guests[user]['player']]
+                                text = f'{name_bot} взял со стола {bot_took}'
+                                guests[user]['player'] = 0
+                                guests[user]['confection_on_table'] -= bot_took
+                            number = guests[user]['confection_on_table']
+                            guests[user]['action_field'] = f'На столе {number} конфет {text}'
+                            keyboard = [
+                                [
+                                    InlineKeyboardButton(f"{guests[user]['action_field']}",
+                                                         callback_data=str(CONFECTION)),
+                                ]
+                            ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await query.edit_message_text(text=f"{guests[user]['confection_states']}: ",
+                                                          reply_markup=reply_markup)
+                            return PLAY_CONFECTION
+
+                    else:
+                        guests[user]['action_field'] = 'Подсказка'
+                        keyboard = [
+                            [
+                                InlineKeyboardButton(f"{guests[user]['action_field']}", callback_data=str(CONFECTION)),
+                            ]
+                        ]
+                        reply_markup = InlineKeyboardMarkup(keyboard)
+                        await query.edit_message_text(text=f"{guests[user]['confection_states']}: ",
+                                                      reply_markup=reply_markup)
+                        return PLAY_CONFECTION
+        case 'Возьмите со стола условное количество конфет':
+            pass
+
+async def key_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.message.from_user.name
+    match guests[user]['SelectedGame']:
+        case 'confection':
+            match guests[user]['confection_states']:
+                case 'Задайте начальное количество конфет на столе':
+                    value = get_int_value(update.message.text)
+                    if is_int_number(value):
+                        if max_candy < value:
+                            guests[user]['action_field'] = value
+                        else:
+                            guests[user]['action_field'] = f'Значение должно быть более {max_candy}'
+                    else:
+                        guests[user]['action_field'] = 'Значение должно быть целым положительным числом'
+                    keyboard = [
+                        [
+                            InlineKeyboardButton(f"{guests[user]['action_field']}", callback_data=str(CONFECTION)),
+                        ]
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await update.message.reply_text(text=f"{guests[user]['confection_states']}: ",
+                                                    reply_markup=reply_markup)
+                    return PLAY_CONFECTION
 
 
 def main() -> None:
@@ -465,6 +593,10 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
+            SELECT_GAME: [
+                CallbackQueryHandler(select_game, pattern="^" + str(CONFECTION) + "$"),
+                CallbackQueryHandler(select_game, pattern="^" + str(TICTACTOE) + "$"),
+            ],
             QUATION_QUEUE: [
                 CallbackQueryHandler(you_bot_first, pattern="^" + str(ONIL) + "$"),
                 CallbackQueryHandler(you_bot_first, pattern="^" + str(ONE) + "$"),
@@ -473,18 +605,22 @@ def main() -> None:
                 CallbackQueryHandler(x_o_sighn, pattern="^" + str(ONIL) + "$"),
                 CallbackQueryHandler(x_o_sighn, pattern="^" + str(ONE) + "$"),
             ],
-            PLAY_GAME: [
-                CallbackQueryHandler(neil, pattern="^" + str(ONIL) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(ONE) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(TWO) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(THREE) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(FOUR) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(FIVE) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(SIX) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(SEVEN) + "$"),
-                CallbackQueryHandler(neil, pattern="^" + str(EIGHT) + "$"),
+            PLAY_CONFECTION: [
+                CallbackQueryHandler(confection_game, pattern="^" + str(CONFECTION) + "$"),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, key_message)
             ],
-            GAME_OVER: [
+            PLAY_TICTACTOE: [
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(ONIL) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(ONE) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(TWO) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(THREE) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(FOUR) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(FIVE) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(SIX) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(SEVEN) + "$"),
+                CallbackQueryHandler(tictactoe_game, pattern="^" + str(EIGHT) + "$"),
+            ],
+            TICTACTOE_OVER: [
                 CallbackQueryHandler(joke, pattern="^" + str(ONIL) + "$"),
                 CallbackQueryHandler(joke, pattern="^" + str(ONE) + "$"),
                 CallbackQueryHandler(joke, pattern="^" + str(TWO) + "$"),
@@ -504,6 +640,9 @@ def main() -> None:
     # Add ConversationHandler to application that will be used for handling updates
     application.add_handler(conv_handler)
 
+    # per_message = [MessageHandler(filters.TEXT & ~filters.COMMAND, echo)],
+    # on non command i.e message - echo the message on Telegram
+    # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
 
